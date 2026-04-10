@@ -1358,8 +1358,8 @@ if __name__ == "__main__":
 
     # task = "bridge_put_on"
     task = 'pick_coke_can'
-    # log_dir_root = "/share/project/yuqi.wang/OmniSim/reference/RoboVLMs-main/results_univla_google_img_post_wm3_20k"
-    log_dir_root = "/share/project/yuqi.wang/OmniSim/reference/RoboVLMs-main/results_univla_bridge_video_20k"
+    # log_dir_root = "/home/zijian/projects/UniVLA/reference/RoboVLMs/results_univla_google"
+    log_dir_root = "/home/zijian/projects/UniVLA/reference/RoboVLMs/results_univla_bridge"
     ckpt_name = 'emu_vla'
 
     # google

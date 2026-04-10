@@ -1,7 +1,7 @@
 [project]
 name = "univla"
 version = "0.1.0"
-requires-python = ">=3.10,<3.13"
+requires-python = "==3.10.*"
 dependencies = [
     "torch==2.4.0",
     "torchvision==0.19.0",

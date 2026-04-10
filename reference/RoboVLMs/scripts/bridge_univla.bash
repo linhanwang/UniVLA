@@ -8,8 +8,11 @@ robot_init_x=0.147
 robot_init_y=0.028
 
 ckpt_dir=$1
+vision_hub=${VISION_HUB:-/home/zijian/projects/UniVLA/pretrain/Emu3-VisionTokenizer}
 
 python eval/simpler/main_inference_emu.py --policy-model ${policy_model} --emu_hub $ckpt_dir \
+  --vq_hub $ckpt_dir --vision_hub $vision_hub \
+  --CACHE_ROOT ./logs/simpler \
   --robot ${robot} --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 60 \
   --env-name PutCarrotOnPlateInScene-v0 --scene-name ${scene_name} \
@@ -18,6 +21,8 @@ python eval/simpler/main_inference_emu.py --policy-model ${policy_model} --emu_h
   --robot-init-rot-quat-center 0 0 0 1 --robot-init-rot-rpy-range 0 0 1 0 0 1 0 0 1;
 
 python eval/simpler/main_inference_emu.py --policy-model ${policy_model} --emu_hub $ckpt_dir \
+  --vq_hub $ckpt_dir --vision_hub $vision_hub \
+  --CACHE_ROOT ./logs/simpler \
   --robot ${robot} --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 60 \
   --env-name StackGreenCubeOnYellowCubeBakedTexInScene-v0 --scene-name ${scene_name} \
@@ -26,6 +31,8 @@ python eval/simpler/main_inference_emu.py --policy-model ${policy_model} --emu_h
   --robot-init-rot-quat-center 0 0 0 1 --robot-init-rot-rpy-range 0 0 1 0 0 1 0 0 1;
 
 python eval/simpler/main_inference_emu.py --policy-model ${policy_model} --emu_hub $ckpt_dir \
+  --vq_hub $ckpt_dir --vision_hub $vision_hub \
+  --CACHE_ROOT ./logs/simpler \
   --robot ${robot} --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 60 \
   --env-name PutSpoonOnTableClothInScene-v0 --scene-name ${scene_name} \
@@ -40,6 +47,8 @@ robot_init_x=0.127
 robot_init_y=0.06
 
 python eval/simpler/main_inference_emu.py --policy-model ${policy_model} --emu_hub $ckpt_dir \
+  --vq_hub $ckpt_dir --vision_hub $vision_hub \
+  --CACHE_ROOT ./logs/simpler \
   --robot ${robot} --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 120 \
   --env-name PutEggplantInBasketScene-v0 --scene-name ${scene_name} \

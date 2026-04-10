@@ -12,9 +12,9 @@ if "env" in locals():
     print("Closing existing env")
     env.close()
     del env
+sapien.render_config.camera_shader_dir = "ibl"
+sapien.render_config.rt_use_denoiser = False
 env = simpler_env.make(task_name)
-# Colab GPU does not supoort denoiser
-sapien.render_config.rt_use_denoiser = True
 obs, reset_info = env.reset()
 instruction = env.get_language_instruction()
 print("Reset info", reset_info)
@@ -22,15 +22,22 @@ print("Instruction", instruction)
 
 frames = []
 done, truncated = False, False
+step_idx = 0
 while not (done or truncated):
-    # action[:3]: delta xyz; action[3:6]: delta rotation in axis-angle representation;
-    # action[6:7]: gripper (the meaning of open / close depends on robot URDF)
+    print(f"step {step_idx}: get_image", flush=True)
     image = get_image_from_maniskill2_obs_dict(env, obs)
-    action = env.action_space.sample()  # replace this with your policy inference
+    print(f"step {step_idx}: sample action", flush=True)
+    action = env.action_space.sample()
+    print(f"step {step_idx}: env.step", flush=True)
     obs, reward, done, truncated, info = env.step(action)
     frames.append(image)
-    # save the image
+    step_idx += 1
+print(f"loop exited after {step_idx} steps, done={done}, truncated={truncated}", flush=True)
 
 episode_stats = info.get("episode_stats", {})
 print("Episode stats", episode_stats)
-mediapy.show_video(frames, fps=10)
+import os
+out_path = os.path.abspath("env_test.mp4")
+print(f"Writing {len(frames)} frames to {out_path}")
+mediapy.write_video(out_path, frames, fps=10)
+print("Done")

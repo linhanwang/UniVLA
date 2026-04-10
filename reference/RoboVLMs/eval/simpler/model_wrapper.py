@@ -142,12 +142,16 @@ class EmuVLAInference(CustomModel):
         self.processor = Emu3Processor(self.image_processor, self.image_tokenizer, self.tokenizer)
 
         # fast tokenization
+        fast_root = os.environ.get(
+            "UNIVLA_FAST_ROOT",
+            "/home/zijian/projects/UniVLA/pretrain",
+        )
         if self.policy_setup == "widowx_bridge":
-            fast_path = "/share/project/yuqi.wang/UniVLA/pretrain/fast_bridge_t5_s50"
+            fast_path = os.path.join(fast_root, "fast_bridge_t5_s50")
         elif self.policy_setup == "google_robot":
-            fast_path = "/share/project/yuqi.wang/UniVLA/pretrain/fast_google_a5_s50"
+            fast_path = os.path.join(fast_root, "fast_google_a5_s50")
         else:
-            fast_path = "/share/project/yuqi.wang/UniVLA/pretrain/fast"
+            fast_path = os.path.join(fast_root, "fast")
         self.action_tokenizer = AutoProcessor.from_pretrained(fast_path, trust_remote_code=True)
 
         self.rgb_list = []
