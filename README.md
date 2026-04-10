@@ -78,10 +78,10 @@ bash scripts/simulator/simplerenv/train_simplerenv_bridge_video.sh
 ```
 
 ## Setup
-> Here we provide a conda environment setup for the project.
+> Here we use [uv](https://docs.astral.sh/uv/) to manage the Python environment.
 ```shell
-conda create -n emu_vla python=3.10
-pip install -r requirements.txt
+uv sync
+uv pip install flash-attn==2.8.3 --no-build-isolation
 ```
 ### Benchmark setup, training and evaluation
 - [CALVIN](docs/calvin.md)
