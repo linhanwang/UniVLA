@@ -9,6 +9,7 @@ DATAPATH="$HOME/data/sft_data/meta/simplerenv_bridge_trainval.pkl"
 ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
 EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k"
 
+export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
 export DS_SKIP_CUDA_CHECK=1
 export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
@@ -59,4 +60,6 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     --actions_format "fast" \
     --use_gripper False \
     --video_format "interleave" \
+    --report_to wandb \
+    --run_name ${EXP_NAME} \
     --action_tokenizer_path ${ACTION_TOKENIZER_PATH} \
