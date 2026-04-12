@@ -51,6 +51,6 @@
     "use_cache": true,
     "action_dim": 7,
     "vision_loss_weight": 5.0,
-    "_attn_implementation":"flash_attention_2"
+    "_attn_implementation":"sdpa"
   }
 }

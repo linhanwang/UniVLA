@@ -10,6 +10,7 @@ EXP_NAME=""
 PRETRAIN=""
 
 export PYTHONPATH=$(pwd)
+export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
 torchrun \
     --nproc_per_node=${NGPUS} \

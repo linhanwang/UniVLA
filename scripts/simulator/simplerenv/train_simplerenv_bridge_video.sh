@@ -2,8 +2,8 @@ WORLD_SIZE=${WORLD_SIZE:-1}
 RANK=${RANK:-0}
 MASTER_ADDR=${MASTER_ADDR:-127.0.0.1}
 MASTER_PORT=${MASTER_PORT:-23456}
-export CUDA_VISIBLE_DEVICES=3,6
-NGPUS=2
+export CUDA_VISIBLE_DEVICES=2,3,6
+NGPUS=3
 
 DATAPATH="$HOME/data/sft_data/meta/simplerenv_bridge_trainval.pkl"
 ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
@@ -11,6 +11,7 @@ EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k"
 
 export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
 export DS_SKIP_CUDA_CHECK=1
+export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
 $HOME/projects/UniVLA/.venv/bin/torchrun \
     --nproc_per_node=${NGPUS} \
@@ -36,8 +37,9 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     --dataloader_num_workers 16 \
     --lr_scheduler_type "cosine_with_min_lr" \
     --warmup_steps 500 \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 8 \
+    --per_device_train_batch_size 14 \
+    --gradient_accumulation_steps 3 \
+    --torch_compile True \
     --frames 2 \
     --action_frames 5 \
     --max_position_embeddings 2400 \

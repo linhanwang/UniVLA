@@ -72,7 +72,7 @@ class TrainingArguments(tf.TrainingArguments):
     report_to: List[str] = field(default_factory=list)
     remove_unused_columns: bool = field(default=False)
     min_learning_rate: Optional[float] = field(default=None)
-    attn_type: Optional[str] = field(default="fa2")
+    attn_type: Optional[str] = field(default="sdpa")
     image_area: Optional[int] = field(default=None)
     max_position_embeddings: Optional[int] = field(default=None)
     from_scratch: bool = field(default=False)
@@ -84,13 +84,13 @@ def load_model(model_args, model_config, training_args):
     """
     if training_args.from_scratch:
         model_config.torch_dtype = torch.bfloat16 if training_args.bf16 else None
-        model_config.attn_implementation = "flash_attention_2" if training_args.attn_type == "fa2" else None
+        model_config.attn_implementation = training_args.attn_type if training_args.attn_type else None
         return Emu3MoE(config=model_config)
     else:
         return Emu3MoE.from_pretrained(
             model_args.model_name_or_path,
             config=model_config,
-            attn_implementation="flash_attention_2" if training_args.attn_type == "fa2" else None,
+            attn_implementation=training_args.attn_type if training_args.attn_type else None,
             torch_dtype=torch.bfloat16 if training_args.bf16 else None,
         )
 
@@ -163,7 +163,7 @@ def train():
             model=model,
             args=training_args,
             train_dataset=train_dataset, 
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
         )
     else:
         # Setup Trainer
@@ -171,7 +171,7 @@ def train():
             model=model,
             args=training_args,
             train_dataset=train_dataset,
-            tokenizer=tokenizer,  # Pass tokenizer to trainer
+            processing_class=tokenizer,
         )
 
     # Check if resuming from checkpoint

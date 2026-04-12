@@ -10,10 +10,9 @@ UniVLA is a unified Vision-Language-Action model for robotics and autonomous dri
 
 ```shell
 uv sync
-uv pip install flash-attn==2.8.3 --no-build-isolation
 ```
 
-Uses uv for environment management. PyTorch CUDA 12.4 builds are pulled from the PyTorch index configured in `pyproject.toml`. flash-attn is installed separately with `--no-build-isolation` because it needs torch present at build time and has no prebuilt wheels on PyPI.
+Uses uv for environment management. PyTorch CUDA 13.0 builds are pulled from the PyTorch index configured in `pyproject.toml`. Flash attention is provided by PyTorch's built-in SDPA (scaled dot-product attention) with cuDNN backend — no separate flash-attn package needed.
 
 ## Training Commands
 
