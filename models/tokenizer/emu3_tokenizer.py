@@ -238,9 +238,9 @@ data_config = {
         'min_pixels': 128 * 128,
         'interval': 1,
         'SIZE': (256, 256),
-        'VIDEO_ROOT': '/share/project/yuqi.wang/datasets/processed_data/oxembodiment/bridge',
-        'VIDEO_CODES_SAVE': '/share/project/yuqi.wang/datasets/sft_data/bridge_orig_codes_256',
-        'VIDEO_RECON_SAVE': '/share/project/yuqi.wang/datasets/sft_data/bridge_orig_recon'
+        'VIDEO_ROOT': '/home/zijian/data/bridge_processed/',
+        'VIDEO_CODES_SAVE': '/home/zijian/data/sft_data/bridge_orig_codes_256',
+        'VIDEO_RECON_SAVE': '/home/zijian/data/sft_data/bridge_orig_recon'
     },
     'maniskill': {
         'min_pixels': 128 * 128,
@@ -376,10 +376,10 @@ def get_data_config(process_data):
 if __name__ == "__main__":
 
     MODEL_HUB = "BAAI/Emu3-VisionTokenizer"
-    path = "/share/project/yuqi.wang/UniVLA/pretrain/Emu3-VisionVQ"
+    path = "/home/zijian/projects/UniVLA/pretrain/Emu3-VisionTokenizer/"
 
     # choose the dataset to process
-    process_data = 'Calvin'
+    process_data = 'bridge_orig'
 
     # current supported datasets
     simulator_list = ["Calvin", "Calvin_partial", "libero", 'libero_long', 'maniskill']

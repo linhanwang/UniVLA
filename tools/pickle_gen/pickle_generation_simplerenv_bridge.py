@@ -88,17 +88,17 @@ def extract_reasoning_list_from_episode(raw_episode):
 
 
 # Project-specific imports
-sys.path.append("/share/project/yuqi.wang/UniVLA")
+sys.path.append(os.path.expanduser("~/projects/UniVLA"))
 from train.dataset.normalize_pi0 import RunningStats, save, load
 
 # ======= Path and config =======
-dataset_path = "/share/project/yuqi.wang/datasets/processed_data"
-output_path = "/share/project/yuqi.wang/datasets/processed_data/meta"
-normalizer_path = "/share/project/yuqi.wang/UniVLA/configs/normalizer_bridge"
+output_path = os.path.expanduser("~/data/sft_data/meta")
+normalizer_path = os.path.expanduser("~/projects/UniVLA/configs/normalizer_bridge")
+os.makedirs(output_path, exist_ok=True)
 os.makedirs(normalizer_path, exist_ok=True)
 
-language_dir = f"{dataset_path}/oxembodiment/bridge"
-vq_dir = "/share/project/yuqi.wang/datasets/sft_data/bridge_orig_codes_256"
+language_dir = os.path.expanduser("~/data/bridge_processed")
+vq_dir = os.path.expanduser("~/data/sft_data/bridge_orig_codes_256")
 interval = 1
 frames = 10
 with_cot = False
