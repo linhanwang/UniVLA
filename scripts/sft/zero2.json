@@ -19,6 +19,7 @@
         "contiguous_gradients": true,
         "reduce_bucket_size": "auto",
         "allgather_bucket_size": 200000000,
-        "allgather_partitions": true
+        "allgather_partitions": true,
+        "reduce_scatter": true
     }
 }
