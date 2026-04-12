@@ -1463,6 +1463,11 @@ class Emu3MoE(Emu3PreTrainedModel):
             self.vision_loss_weight = config.vision_loss_weight
             self.eov_token_id = config.eov_token_id
             self.bov_token_id = config.bov_token_id
+            # Pre-compute CE weight vector once instead of every forward pass
+            ce_weights = torch.ones(config.vocab_size)
+            vision_token_range = range(self.bov_token_id, self.eov_token_id + 1)
+            ce_weights[vision_token_range] = config.vision_loss_weight
+            self.register_buffer("ce_weights", ce_weights, persistent=False)
         else:
             self.use_weight = False
 
@@ -1568,37 +1573,53 @@ class Emu3MoE(Emu3PreTrainedModel):
             # flow matching loss
             loss_action = F.mse_loss(noise - action, velo_pred)
 
-        if self.config.pretraining_tp > 1:
-            lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
-            logits = [F.linear(hidden_states, lm_head_slices[i]) for i in range(self.config.pretraining_tp)]
-            logits = torch.cat(logits, dim=-1)
-        else:
-            logits = self.lm_head(hidden_states)
-        logits = logits.float()
-
         loss = None
-        if labels is not None:
-            # Shift so that tokens < n predict n
-            shift_logits = logits[..., :-1, :].contiguous()
+        if labels is not None and self.training:
+            # Shift labels so that tokens < n predict n
             shift_labels = labels[..., 1:].contiguous()
-            # Flatten the tokens
-            if self.use_weight:
-                weights = torch.ones(self.config.vocab_size)
-                vision_token_range = range(self.bov_token_id,self.eov_token_id+1)
-                weights[vision_token_range] = self.vision_loss_weight
-                loss_fct = CrossEntropyLoss(weight=weights.to(logits.device))
+            shift_hidden = hidden_states[..., :-1, :].contiguous()
 
+            # Only compute lm_head on positions with valid labels (not -100).
+            # This is numerically identical: ignored positions contribute zero
+            # to both loss and gradients, so skipping them changes nothing.
+            flat_labels = shift_labels.view(-1)
+            flat_hidden = shift_hidden.view(-1, shift_hidden.shape[-1])
+            valid_mask = flat_labels != -100
+
+            if valid_mask.any():
+                valid_hidden = flat_hidden[valid_mask]
+                valid_labels = flat_labels[valid_mask]
+
+                if self.config.pretraining_tp > 1:
+                    lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
+                    valid_logits = [F.linear(valid_hidden, lm_head_slices[i]) for i in range(self.config.pretraining_tp)]
+                    valid_logits = torch.cat(valid_logits, dim=-1)
+                else:
+                    valid_logits = self.lm_head(valid_hidden)
+                valid_logits = valid_logits.float()
+
+                if self.use_weight:
+                    loss_fct = CrossEntropyLoss(weight=self.ce_weights.float())
+                else:
+                    loss_fct = CrossEntropyLoss()
+                loss = loss_fct(valid_logits, valid_labels)
             else:
-                loss_fct = CrossEntropyLoss()
-            shift_logits = shift_logits.view(-1, self.config.vocab_size)
-            shift_labels = shift_labels.view(-1)
-            # Enable model parallelism
-            shift_labels = shift_labels.to(shift_logits.device)
-            
-            loss = loss_fct(shift_logits, shift_labels)
+                loss = hidden_states.sum() * 0.0
+
             if action is not None and self.action_experts:
                 loss += loss_action * self.vision_loss_weight
-            # loss = loss_action
+
+            logits = None  # not needed during training
+        else:
+            # Inference: compute full logits as before
+            if self.config.pretraining_tp > 1:
+                lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
+                logits = [F.linear(hidden_states, lm_head_slices[i]) for i in range(self.config.pretraining_tp)]
+                logits = torch.cat(logits, dim=-1)
+            else:
+                logits = self.lm_head(hidden_states)
+            logits = logits.float()
+
         if not return_dict:
             output = (logits,) + outputs[1:]
             return (loss,) + output if loss is not None else output
