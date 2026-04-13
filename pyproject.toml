@@ -15,6 +15,7 @@ dependencies = [
     "gradio==4.44.0",
     "numpydantic==1.6.8",
     "wandb>=0.25.1",
+    "scipy>=1.15.3",
 ]
 
 [tool.uv]
