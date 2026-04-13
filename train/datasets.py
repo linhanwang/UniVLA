@@ -24,9 +24,28 @@ class Emu3SFTDataset(Dataset):
         self.random_frame_sampling = args.random_frame_sampling
         self.raw_image = args.raw_image
         
-        with open(args.data_path,'rb') as f:
-            self.data = pickle.load(f)
-        
+        if args.data_path.endswith('.h5'):
+            import h5py
+            with h5py.File(args.data_path, 'r') as f:
+                all_images = f['images'][:]
+                all_grippers = f['grippers'][:]
+                all_actions = f['actions'][:]
+                offsets = f['episode_offsets'][:]
+                texts = f['texts'][:]
+            self.data = []
+            for i in range(len(offsets)):
+                off, length = offsets[i]
+                self.data.append({
+                    'text': texts[i].decode() if isinstance(texts[i], bytes) else texts[i],
+                    'image': all_images[off:off + length],
+                    'gripper_image': all_grippers[off:off + length],
+                    'action': all_actions[off:off + length],
+                })
+            del all_images, all_grippers, all_actions
+        else:
+            with open(args.data_path, 'rb') as f:
+                self.data = pickle.load(f)
+
         if not self.random_frame_sampling:
             self.data = list(self.sliding_window_sampling(self.data, interval=args.action_frames*args.frames))
         
@@ -118,23 +137,36 @@ class Emu3SFTDataset(Dataset):
                 selected_actions = action_prompt[start_idx:start_idx + T]
                 return image_code, selected_actions
         else:
-            selected_frames = [np.load(img_path) for img_path in img_list[start_idx:start_idx + T]]
-            tensor_frames = [torch.from_numpy(frame) for frame in selected_frames]
-            tensor = torch.stack(tensor_frames, dim=1)
+            if isinstance(img_list, np.ndarray):
+                # Packed HDF5: img_list is (N, 32, 32) numpy array already in memory
+                tensor = torch.from_numpy(np.ascontiguousarray(img_list[start_idx:start_idx + T]))
+            else:
+                # Path-based: img_list is list of .npy file paths
+                selected_frames = [np.load(img_path) for img_path in img_list[start_idx:start_idx + T]]
+                tensor_frames = [torch.from_numpy(frame) for frame in selected_frames]
+                tensor = torch.stack(tensor_frames, dim=1).squeeze(0)
 
             if gripper is not None and action_prompt is not None:
                 selected_actions = action_prompt[start_idx:start_idx + T]
-                selected_gripper = [np.load(img_path) for img_path in gripper[start_idx:start_idx + T]]
-                tensor_gripper = [torch.from_numpy(frame) for frame in selected_gripper]
-                return tensor.squeeze(0), selected_actions, torch.stack(tensor_gripper, dim=1).squeeze(0)
+                if isinstance(gripper, np.ndarray):
+                    tensor_gripper = torch.from_numpy(np.ascontiguousarray(gripper[start_idx:start_idx + T]))
+                else:
+                    selected_gripper = [np.load(img_path) for img_path in gripper[start_idx:start_idx + T]]
+                    tg = [torch.from_numpy(frame) for frame in selected_gripper]
+                    tensor_gripper = torch.stack(tg, dim=1).squeeze(0)
+                return tensor, selected_actions, tensor_gripper
             elif action_prompt is not None:
                 selected_actions = action_prompt[start_idx:start_idx + T]
-                return tensor.squeeze(0), selected_actions
+                return tensor, selected_actions
             elif gripper is not None:
-                selected_gripper = [np.load(img_path) for img_path in gripper[start_idx:start_idx + T]]
-                tensor_gripper = [torch.from_numpy(frame) for frame in selected_gripper]
-                return tensor.squeeze(0), torch.stack(tensor_gripper, dim=1).squeeze(0)
-        return tensor.squeeze(0)
+                if isinstance(gripper, np.ndarray):
+                    tensor_gripper = torch.from_numpy(np.ascontiguousarray(gripper[start_idx:start_idx + T]))
+                else:
+                    selected_gripper = [np.load(img_path) for img_path in gripper[start_idx:start_idx + T]]
+                    tg = [torch.from_numpy(frame) for frame in selected_gripper]
+                    tensor_gripper = torch.stack(tg, dim=1).squeeze(0)
+                return tensor, tensor_gripper
+        return tensor
     
     def get_fps_for_path(self, image_tokens_path):
         for key in self.dataset_fps.keys():

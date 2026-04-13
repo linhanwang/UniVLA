@@ -10,7 +10,7 @@ MASTER_PORT=${MASTER_PORT:-23456}
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 NGPUS=4
 
-DATAPATH="$HOME/data/sft_data/meta/simplerenv_bridge_trainval.pkl"
+DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
 ACTION_TOKENIZER_PATH="$HOME/yinlin/projects/UniVLA/pretrain/fast_bridge_t5_s50"
 EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_l40s"
 
