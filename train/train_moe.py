@@ -37,6 +37,16 @@ class WeightedSamplerTrainer(Trainer):
         )
 
 @dataclass
+class LoRAArguments:
+    use_lora: bool = field(default=False)
+    lora_rank: int = field(default=32)
+    lora_alpha: int = field(default=64)
+    lora_dropout: float = field(default=0.05)
+    lora_target_modules: List[str] = field(
+        default_factory=lambda: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+    )
+
+@dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(default="BAAI/Emu3-Gen")
     model_config_path: Optional[str] = field(default="pretrain/Emu3-Base")
@@ -78,21 +88,38 @@ class TrainingArguments(tf.TrainingArguments):
     from_scratch: bool = field(default=False)
     dataloader_num_workers: Optional[int] = field(default=0)
 
-def load_model(model_args, model_config, training_args):
+def load_model(model_args, model_config, training_args, lora_args=None):
     """
     Load model based on whether to train from scratch or fine-tune from a pre-trained model.
+    Supports loading PEFT adapter checkpoints when use_lora is enabled.
     """
     if training_args.from_scratch:
         model_config.torch_dtype = torch.bfloat16 if training_args.bf16 else None
         model_config.attn_implementation = training_args.attn_type if training_args.attn_type else None
         return Emu3MoE(config=model_config)
-    else:
-        return Emu3MoE.from_pretrained(
-            model_args.model_name_or_path,
+
+    # Check if model_name_or_path is a PEFT adapter checkpoint
+    adapter_config_path = osp.join(model_args.model_name_or_path, "adapter_config.json")
+    if lora_args and lora_args.use_lora and osp.exists(adapter_config_path):
+        import json
+        with open(adapter_config_path) as f:
+            adapter_cfg = json.load(f)
+        base_model_path = adapter_cfg.get("base_model_name_or_path", model_args.model_name_or_path)
+        base_model = Emu3MoE.from_pretrained(
+            base_model_path,
             config=model_config,
             attn_implementation=training_args.attn_type if training_args.attn_type else None,
             torch_dtype=torch.bfloat16 if training_args.bf16 else None,
         )
+        from peft import PeftModel
+        return PeftModel.from_pretrained(base_model, model_args.model_name_or_path)
+
+    return Emu3MoE.from_pretrained(
+        model_args.model_name_or_path,
+        config=model_config,
+        attn_implementation=training_args.attn_type if training_args.attn_type else None,
+        torch_dtype=torch.bfloat16 if training_args.bf16 else None,
+    )
 
 def get_dataset(data_args, tokenizer):
     """
@@ -134,8 +161,8 @@ def train():
     Main function to train the model.
     """
     # Parse arguments
-    parser = tf.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
-    model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    parser = tf.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments, LoRAArguments))
+    model_args, data_args, training_args, lora_args = parser.parse_args_into_dataclasses()
 
     # Set environment variable for WANDB logging
     os.environ["WANDB_DIR"] = osp.join(training_args.output_dir, "wandb")
@@ -153,7 +180,21 @@ def train():
     )
 
     # Initialize model
-    model = load_model(model_args, model_config, training_args)
+    model = load_model(model_args, model_config, training_args, lora_args)
+
+    # Wrap with LoRA if requested (skip if already loaded as PeftModel from adapter checkpoint)
+    if lora_args.use_lora and not hasattr(model, 'peft_config'):
+        from peft import LoraConfig, get_peft_model
+        lora_config = LoraConfig(
+            r=lora_args.lora_rank,
+            lora_alpha=lora_args.lora_alpha,
+            lora_dropout=lora_args.lora_dropout,
+            target_modules=lora_args.lora_target_modules,
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
 
     # Initialize dataset
     train_dataset = get_dataset(data_args, tokenizer)
@@ -183,7 +224,11 @@ def train():
     # Save model and training state
     trainer.save_state()
     torch.cuda.synchronize()
-    trainer.save_model(training_args.output_dir)
+    if lora_args.use_lora:
+        if training_args.local_rank in (-1, 0):
+            model.save_pretrained(training_args.output_dir)
+    else:
+        trainer.save_model(training_args.output_dir)
 
 if __name__ == "__main__":
     train()
