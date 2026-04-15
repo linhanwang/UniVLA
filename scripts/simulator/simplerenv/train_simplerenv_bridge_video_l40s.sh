@@ -59,6 +59,7 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --gradient_checkpointing True \
     --save_strategy steps \
     --save_steps 4000 \
+    --save_only_model True \
     --eval_strategy no \
     --apply_loss_on_only_vision False \
     --apply_loss_on_only_action True \

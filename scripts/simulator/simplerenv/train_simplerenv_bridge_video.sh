@@ -14,6 +14,7 @@ export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
 export DS_SKIP_CUDA_CHECK=1
 export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
+
 $HOME/projects/UniVLA/.venv/bin/torchrun \
     --nproc_per_node=${NGPUS} \
     --nnodes=1 \
@@ -53,6 +54,7 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     --gradient_checkpointing True \
     --save_strategy steps \
     --save_steps 4000 \
+    --save_only_model True \
     --eval_strategy no \
     --apply_loss_on_only_vision False \
     --apply_loss_on_only_action True \

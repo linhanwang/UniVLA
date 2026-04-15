@@ -1,34 +1,28 @@
-#!/bin/bash
-
-module load CUDA/13.0.2
-export TRITON_CACHE_DIR=/scratch/linhan
-
 WORLD_SIZE=${WORLD_SIZE:-1}
 RANK=${RANK:-0}
 MASTER_ADDR=${MASTER_ADDR:-127.0.0.1}
 MASTER_PORT=${MASTER_PORT:-23456}
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=2,3,5,6
 NGPUS=4
 
 DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
-ACTION_TOKENIZER_PATH="$HOME/yinlin/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_l40s_lora"
+ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
+EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_lora"
 
 export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
 export DS_SKIP_CUDA_CHECK=1
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
 export WANDB_MODE=offline
 
-$HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
+$HOME/projects/UniVLA/.venv/bin/torchrun \
     --nproc_per_node=${NGPUS} \
     --nnodes=1 \
     --node_rank=${RANK} \
     train/train_moe.py \
-    --model_name_or_path $HOME/data/WORLD_MODEL_POSTTRAIN \
-    --model_config_path $HOME/yinlin/projects/UniVLA/configs/moe_fast_video.json \
+    --model_name_or_path $HOME/projects/UniVLA/logs/ckpts/WORLD_MODEL_POSTTRAIN \
+    --model_config_path $HOME/projects/UniVLA/configs/moe_fast_video.json \
     --deepspeed scripts/sft/zero2_lora.json \
     --output_dir "logs/"${EXP_NAME} \
     --learning_rate 8e-5 \
@@ -43,11 +37,11 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --tf32 True \
     --data_path ${DATAPATH} \
     --max_steps 20000 \
-    --dataloader_num_workers 8 \
+    --dataloader_num_workers 16 \
     --lr_scheduler_type "cosine_with_min_lr" \
     --warmup_steps 500 \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 4 \
+    --per_device_train_batch_size 16 \
+    --gradient_accumulation_steps 2 \
     --torch_compile True \
     --torch_compile_backend "inductor" \
     --torch_compile_mode "reduce-overhead" \
@@ -58,7 +52,7 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --max_position_embeddings 2400 \
     --seed 42 \
     --logging_steps 20 \
-    --gradient_checkpointing True \
+    --gradient_checkpointing False \
     --save_strategy steps \
     --save_steps 4000 \
     --save_only_model True \
