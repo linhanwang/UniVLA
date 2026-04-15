@@ -1,4 +1,5 @@
 import glob
+import os
 from pathlib import Path
 from typing import Sequence, Optional
 
@@ -1360,7 +1361,7 @@ if __name__ == "__main__":
     task = 'pick_coke_can'
     # log_dir_root = "/home/zijian/projects/UniVLA/reference/RoboVLMs/results_univla_google"
     log_dir_root = "/home/zijian/projects/UniVLA/reference/RoboVLMs/results_univla_bridge"
-    ckpt_name = 'emu_vla'
+    ckpt_name = os.environ.get("UNIVLA_CKPT_NAME", "emu_vla")
 
     # google
     # calc_pick_coke_can_stats(log_dir_root, ckpt_name)

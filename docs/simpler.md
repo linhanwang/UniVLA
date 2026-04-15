@@ -86,8 +86,11 @@ When running evaluation, activate the SimplerEnv venv and put both repos on `PYT
 
 ```shell
 source ${SIMPLER_VENV}/bin/activate
-export PYTHONPATH=/path/to/UniVLA:/path/to/UniVLA/reference/Emu3:/path/to/UniVLA/reference/RoboVLMs:$PYTHONPATH
+export UNIVLA_ROOT=/path/to/UniVLA
+export PYTHONPATH=${UNIVLA_ROOT}:${UNIVLA_ROOT}/reference/Emu3:${UNIVLA_ROOT}/reference/RoboVLMs:$PYTHONPATH
 ```
+
+`scripts/bridge_univla.bash` already exports `PYTHONPATH` using `UNIVLA_ROOT` (falling back to its own location), so running the script from an activated SimplerEnv venv is enough — no manual export needed.
 
 ## Known issues and fixes
 

@@ -149,6 +149,7 @@ def get_args():
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--double-step", action="store_true")
     parser.add_argument("--CACHE_ROOT", type=str, default="/share/project/yuqi.wang/UniVLA/logs/Simpler")
+    parser.add_argument("--model_name", type=str, default="emu_vla")
     args = parser.parse_args()
 
     # env args: robot pose
@@ -194,8 +195,6 @@ if __name__ == "__main__":
     args.logging_dir = f"results_univla_{robot_name}"
     model_path = args.emu_hub
 
-    args.model_name = 'emu_vla'
-    
     if args.double_step:
         args.model_name += "double"
     os.environ["DISPLAY"] = ""
