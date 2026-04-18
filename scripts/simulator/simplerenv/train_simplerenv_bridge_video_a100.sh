@@ -12,9 +12,9 @@ MASTER_PORT=${MASTER_PORT:-23456}
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 NGPUS=4
 
-DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
-ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS120_20k_l40s"
+DATAPATH="$HOME/yinlin/data/simplerenv_bridge_trainval.h5"
+ACTION_TOKENIZER_PATH="$HOME/yinlin/projects/UniVLA/pretrain/fast_bridge_t5_s50"
+EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_a100"
 
 export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
@@ -29,8 +29,8 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --nnodes=1 \
     --node_rank=${RANK} \
     train/train_moe.py \
-    --model_name_or_path $HOME/data/WORLD_MODEL_POSTTRAIN \
-    --model_config_path $HOME/projects/UniVLA/configs/moe_fast_video.json \
+    --model_name_or_path $HOME/yinlin/data/WORLD_MODEL_POSTTRAIN \
+    --model_config_path $HOME/yinlin/projects/UniVLA/configs/moe_fast_video.json \
     --deepspeed scripts/sft/zero3.json \
     --output_dir "logs/"${EXP_NAME} \
     --learning_rate 8e-5 \
@@ -48,9 +48,11 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --dataloader_num_workers 4 \
     --lr_scheduler_type "cosine_with_min_lr" \
     --warmup_steps 500 \
-    --per_device_train_batch_size 6 \
-    --gradient_accumulation_steps 5 \
-    --torch_compile False \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 4 \
+    --torch_compile True \
+    --torch_compile_backend "inductor" \
+    --torch_compile_mode "reduce-overhead" \
     --dataloader_persistent_workers True \
     --dataloader_prefetch_factor 2 \
     --frames 2 \
@@ -60,8 +62,7 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --logging_steps 20 \
     --gradient_checkpointing True \
     --save_strategy steps \
-    --save_only_model False \
-    --save_steps 2000 \
+    --save_steps 4000 \
     --eval_strategy no \
     --apply_loss_on_only_vision False \
     --apply_loss_on_only_action True \
