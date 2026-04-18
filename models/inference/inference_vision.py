@@ -6,7 +6,6 @@ import numpy as np
 from time import time
 from transformers import AutoModel, AutoImageProcessor, GenerationConfig, AutoProcessor
 from transformers.generation import LogitsProcessorList, PrefixConstrainedLogitsProcessor, UnbatchedClassifierFreeGuidanceLogitsProcessor
-import sys
 from torch.nn.functional import cross_entropy
 from random import shuffle
 import random
@@ -23,7 +22,6 @@ except ImportError:
     VLLM_AVAILABLE = False
     print("vllm not available. Install with 'pip install vllm' to enable faster inference.")
 
-sys.path.append("/share/project/yuqi.wang/UniVLA/reference/Emu3")
 from emu3.mllm.processing_emu3 import Emu3Processor
 from emu3.mllm import Emu3Config, Emu3Tokenizer, Emu3ForCausalLM
 from emu3.mllm import Emu3MoE

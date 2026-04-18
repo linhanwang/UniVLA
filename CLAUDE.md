@@ -37,8 +37,8 @@ Training entry point is `train/train_moe.py`, which uses HuggingFace `Trainer` w
 
 ### Model hierarchy
 
-- **Emu3MoE** (`reference/Emu3/emu3/mllm/modeling_emu3.py`): Core model extending Emu3ForCausalLM with MoE action experts. Config in `reference/Emu3/emu3/mllm/configuration_emu3.py` defines both the main LLM config and `action_config` for action expert layers.
-- **Emu3Tokenizer / Emu3Processor** (`reference/Emu3/emu3/mllm/`): Text tokenizer and multimodal processor that handles vision token encoding via a VQ model (Emu3-VisionTokenizer).
+- **Emu3MoE** (`emu3/mllm/modeling_emu3.py`): Core model extending Emu3ForCausalLM with MoE action experts. Config in `emu3/mllm/configuration_emu3.py` defines both the main LLM config and `action_config` for action expert layers.
+- **Emu3Tokenizer / Emu3Processor** (`emu3/mllm/`): Text tokenizer and multimodal processor that handles vision token encoding via a VQ model (Emu3-VisionTokenizer).
 
 ### Action tokenization (two approaches)
 
@@ -74,7 +74,7 @@ Training data is stored as pickle files containing lists of dicts with keys like
 
 ## Reference Code
 
-- `reference/Emu3/`: Base Emu3 model code (forked from BAAI). The core model, tokenizer, and processor classes are defined here.
+- `emu3/`: Base Emu3 model code (from BAAI), moved to repo root. The core model, tokenizer, and processor classes are defined here.
 - `reference/RoboVLMs/`: Evaluation code for SimplerEnv benchmark.
 
 ## Benchmark-specific docs

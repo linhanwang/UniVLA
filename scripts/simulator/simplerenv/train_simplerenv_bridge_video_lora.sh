@@ -10,7 +10,7 @@ ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
 EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_lora"
 
 export WANDB_PROJECT="UniVLA"
-export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
+export PYTHONPATH=$(pwd)
 export DS_SKIP_CUDA_CHECK=1
 export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 

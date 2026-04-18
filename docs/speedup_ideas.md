@@ -21,7 +21,7 @@ Fused RMSNorm, RoPE, SwiGLU in addition to CE. Typical combined speedup on LLaMA
 
 ## 3. Attention backend
 
-Check what `Emu3Attention` actually calls in `reference/Emu3/emu3/mllm/modeling_emu3.py`.
+Check what `Emu3Attention` actually calls in `emu3/mllm/modeling_emu3.py`.
 
 - **cuDNN SDPA backend** (Hopper-native, fast for BF16): force with `torch.backends.cuda.sdp_kernel(enable_cudnn=True)`.
 - **FlashAttention-3** (Hopper-specific, ~1.5-2× FA2): requires the `flash-attn` v3 build.
