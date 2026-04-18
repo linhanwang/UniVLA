@@ -88,6 +88,13 @@ class TrainingArguments(tf.TrainingArguments):
     from_scratch: bool = field(default=False)
     dataloader_num_workers: Optional[int] = field(default=0)
 
+def tag_muon_params(model):
+    for name, p in model.named_parameters():
+        is_matrix = p.ndim >= 2
+        is_embed_or_head = any(k in name for k in ("embed_tokens", "lm_head"))
+        p.use_muon = bool(is_matrix and not is_embed_or_head)
+
+
 def load_model(model_args, model_config, training_args, lora_args=None):
     """
     Load model based on whether to train from scratch or fine-tune from a pre-trained model.
@@ -171,7 +178,11 @@ def train():
     model_config = Emu3MoEConfig.from_pretrained(model_args.model_config_path)
     update_configs(model_config, training_args, ["image_area", "max_position_embeddings"])
     if training_args.min_learning_rate is not None:
-        training_args.lr_scheduler_kwargs["min_lr"] = training_args.min_learning_rate
+        # Use min_lr_rate rather than min_lr so the scheduler doesn't need
+        # optimizer.defaults["lr"], which DeepSpeed's MuonWithAuxAdam omits.
+        training_args.lr_scheduler_kwargs["min_lr_rate"] = (
+            training_args.min_learning_rate / training_args.learning_rate
+        )
     tokenizer = Emu3Tokenizer.from_pretrained(
         model_args.model_name_or_path,
         model_max_length=training_args.max_position_embeddings,
@@ -195,6 +206,8 @@ def train():
         )
         model = get_peft_model(model, lora_config)
         model.print_trainable_parameters()
+
+    tag_muon_params(model)
 
     # Initialize dataset
     train_dataset = get_dataset(data_args, tokenizer)

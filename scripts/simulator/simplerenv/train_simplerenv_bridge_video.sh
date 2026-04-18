@@ -2,12 +2,12 @@ WORLD_SIZE=${WORLD_SIZE:-1}
 RANK=${RANK:-0}
 MASTER_ADDR=${MASTER_ADDR:-127.0.0.1}
 MASTER_PORT=${MASTER_PORT:-23456}
-export CUDA_VISIBLE_DEVICES=2,3,5,6
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 NGPUS=4
 
 DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
 ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k"
+EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_MUON"
 
 export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
@@ -22,7 +22,7 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     train/train_moe.py \
     --model_name_or_path $HOME/projects/UniVLA/logs/ckpts/WORLD_MODEL_POSTTRAIN \
     --model_config_path $HOME/projects/UniVLA/configs/moe_fast_video.json \
-    --deepspeed scripts/sft/zero2.json \
+    --deepspeed scripts/sft/zero2_muon.json \
     --output_dir "logs/"${EXP_NAME} \
     --learning_rate 8e-5 \
     --null_prompt_prob 0.15 \
