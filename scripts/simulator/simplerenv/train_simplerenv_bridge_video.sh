@@ -7,7 +7,7 @@ NGPUS=4
 
 DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
 ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_MUON"
+EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_MUON_LR5e3_WD03_WU1500"
 
 export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd):$(pwd)/reference/Emu3
@@ -26,7 +26,7 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     --output_dir "logs/"${EXP_NAME} \
     --learning_rate 8e-5 \
     --null_prompt_prob 0.15 \
-    --weight_decay 0.1 \
+    --weight_decay 0.03 \
     --min_learning_rate 5e-6 \
     --max_grad_norm 2.0 \
     --adam_beta1 0.9 \
@@ -38,7 +38,7 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     --max_steps 20000 \
     --dataloader_num_workers 16 \
     --lr_scheduler_type "cosine_with_min_lr" \
-    --warmup_steps 500 \
+    --warmup_steps 1500 \
     --per_device_train_batch_size 16 \
     --gradient_accumulation_steps 2 \
     --torch_compile True \
