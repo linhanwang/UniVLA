@@ -9,7 +9,7 @@ ACTION_TOKENIZER_PATH="/share/project/yuqi.wang/UniVLA/pretrain/fast_calvin_norm
 EXP_NAME="UNIVLA_CALVIN_ABCD_VIDEO_BS192_8k"
 
 export PYTHONPATH=$(pwd)
-export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
+export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.12/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
 torchrun \
     --nproc_per_node=${NGPUS} \

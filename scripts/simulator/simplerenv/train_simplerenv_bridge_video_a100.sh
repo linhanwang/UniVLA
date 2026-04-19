@@ -20,7 +20,7 @@ export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd)
 export DS_SKIP_CUDA_CHECK=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
+export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.12/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
 # export WANDB_MODE=offline
 
