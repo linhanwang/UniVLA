@@ -1,11 +1,11 @@
 [project]
 name = "univla"
 version = "0.1.0"
-requires-python = "==3.10.*"
+requires-python = "==3.12.*"
 dependencies = [
-    "torch==2.10.0",
-    "torchvision==0.25.0",
-    "torchaudio==2.10.0",
+    "torch==2.9.0",
+    "torchvision==0.24.0",
+    "torchaudio==2.9.0",
     "transformers==4.51.0",
     "deepspeed>=0.18.0",
     "setuptools",
@@ -21,6 +21,10 @@ dependencies = [
     "peft>=0.15.0",
 ]
 
+[project.optional-dependencies]
+fa2 = ["flash-attn==2.8.1"]
+liger = ["liger-kernel==0.6.5"]
+
 [tool.uv]
 index-strategy = "unsafe-best-match"
 
@@ -33,3 +37,4 @@ explicit = true
 torch = { index = "pytorch-cu130" }
 torchvision = { index = "pytorch-cu130" }
 torchaudio = { index = "pytorch-cu130" }
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.1/flash_attn-2.8.1+cu13torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl" }

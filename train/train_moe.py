@@ -188,6 +188,13 @@ def train():
         use_fast=False,
     )
 
+    # HF's use_liger_kernel is a no-op on Emu3 (model_type not in Liger's registry).
+    # Patch the custom Emu3 modules directly instead.
+    if getattr(training_args, "use_liger_kernel", False):
+        from emu3.mllm.liger_patch import apply_liger_kernel_to_emu3
+        apply_liger_kernel_to_emu3()
+        training_args.use_liger_kernel = False
+
     # Initialize model
     model = load_model(model_args, model_config, training_args, lora_args)
 

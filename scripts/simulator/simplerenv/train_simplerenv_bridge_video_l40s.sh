@@ -14,15 +14,18 @@ NGPUS=4
 
 DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
 ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS120_20k_l40s"
+EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS120_20k_l40s_v2"
 
 export WANDB_PROJECT="UniVLA"
 export PYTHONPATH=$(pwd)
 export DS_SKIP_CUDA_CHECK=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
+export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.12/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
-# export WANDB_MODE=offline
+export WANDB_MODE=offline
+
+# L40S (Ada, sm_89): FA2 beats SDPA's cuDNN fallback. On H200 (sm_90) leave this unset/"sdpa".
+ATTN_IMPL=${ATTN_IMPL:-flash_attention_2}
 
 $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --nproc_per_node=${NGPUS} \
@@ -72,3 +75,5 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --report_to wandb \
     --run_name ${EXP_NAME} \
     --action_tokenizer_path ${ACTION_TOKENIZER_PATH} \
+    --attn_type ${ATTN_IMPL} \
+    --use_liger_kernel True \
