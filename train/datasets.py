@@ -9,8 +9,6 @@ import numpy as np
 from typing import List, Union
 from torch.utils.data import Dataset
 from PIL import Image
-import sys
-sys.path.append("/share/project/yuqi.wang/UniVLA")
 from models.tokenizer.action_tokenizer import ActionTokenizer
 from transformers import AutoModel, AutoImageProcessor, GenerationConfig, AutoProcessor
     
