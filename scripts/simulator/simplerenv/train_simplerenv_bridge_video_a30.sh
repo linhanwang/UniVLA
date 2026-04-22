@@ -1,6 +1,8 @@
 #!/bin/bash
 
 module load CUDA/13.0.2
+source .venv/bin/activate
+
 export TRITON_CACHE_DIR=/scratch/linhan
 
 WORLD_SIZE=${WORLD_SIZE:-1}
@@ -11,8 +13,8 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 NGPUS=4
 
 DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
-ACTION_TOKENIZER_PATH="$HOME/yinlin/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_l40s_lora"
+ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
+EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS112_20k_a30_paged_adamw_8bit "
 
 export WANDB_PROJECT="UniVLA"
 export WANDB__SERVICE_WAIT=300
@@ -23,7 +25,10 @@ export DS_SKIP_CUDA_CHECK=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.12/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
-export WANDB_MODE=offline
+# export WANDB_MODE=offline
+
+# L40S (Ada, sm_89): FA2 beats SDPA's cuDNN fallback. On H200 (sm_90) leave this unset/"sdpa".
+ATTN_IMPL=${ATTN_IMPL:-flash_attention_2}
 
 $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --nproc_per_node=${NGPUS} \
@@ -31,8 +36,8 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --node_rank=${RANK} \
     train/train_moe.py \
     --model_name_or_path $HOME/data/WORLD_MODEL_POSTTRAIN \
-    --model_config_path $HOME/yinlin/projects/UniVLA/configs/moe_fast_video.json \
-    --deepspeed scripts/sft/zero2_lora.json \
+    --model_config_path $HOME/projects/UniVLA/configs/moe_fast_video.json \
+    --deepspeed scripts/sft/zero3.json \
     --output_dir "logs/"${EXP_NAME} \
     --learning_rate 8e-5 \
     --null_prompt_prob 0.15 \
@@ -46,16 +51,14 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --tf32 True \
     --data_path ${DATAPATH} \
     --max_steps 20000 \
-    --dataloader_num_workers 8 \
+    --dataloader_num_workers 4 \
     --lr_scheduler_type "cosine_with_min_lr" \
     --warmup_steps 500 \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 4 \
-    --torch_compile True \
-    --torch_compile_backend "inductor" \
-    --torch_compile_mode "reduce-overhead" \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 7 \
+    --torch_compile False \
     --dataloader_persistent_workers True \
-    --dataloader_prefetch_factor 4 \
+    --dataloader_prefetch_factor 2 \
     --frames 2 \
     --action_frames 5 \
     --max_position_embeddings 2400 \
@@ -63,9 +66,8 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --logging_steps 20 \
     --gradient_checkpointing True \
     --save_strategy steps \
-    --save_steps 4000 \
-    --save_only_model True \
-    --eval_strategy no \
+    --save_only_model False \
+    --save_steps 3000 \
     --apply_loss_on_only_vision False \
     --apply_loss_on_only_action True \
     --actions True \
@@ -75,6 +77,6 @@ $HOME/yinlin/projects/UniVLA/.venv/bin/torchrun \
     --report_to wandb \
     --run_name ${EXP_NAME} \
     --action_tokenizer_path ${ACTION_TOKENIZER_PATH} \
-    --use_lora True \
-    --lora_rank 32 \
-    --lora_alpha 64 \
+    --attn_type ${ATTN_IMPL} \
+    --use_liger_kernel True \
+    --optim paged_adamw_8bit \
