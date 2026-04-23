@@ -520,6 +520,19 @@ wheels = [
 ]
 
 [[package]]
+name = "liger-kernel"
+version = "0.6.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "torch" },
+    { name = "triton" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/34/12/2a6c40b15049d8c658bfeaa31dfb21fd032255766899c2ebf402b788a8df/liger_kernel-0.6.5.tar.gz", hash = "sha256:1a1b6f94e419825630fc44c66bf670de201da854b6ec2f1de1a662875d71adb8", size = 3763821, upload-time = "2026-02-04T02:02:14.119Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/f6/8ef90fe81d1e451748cbd6d6afe4eca7c4f189c3fc467ad5f32f528c3333/liger_kernel-0.6.5-py3-none-any.whl", hash = "sha256:bf90baa8948b8fd278d2498b2901e10646504959b7ec10202a789ea7791fe546", size = 269573, upload-time = "2026-02-04T02:02:11.945Z" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1525,6 +1538,11 @@ dependencies = [
     { name = "wandb" },
 ]
 
+[package.optional-dependencies]
+liger = [
+    { name = "liger-kernel" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "accelerate" },
@@ -1532,6 +1550,7 @@ requires-dist = [
     { name = "deepspeed", specifier = ">=0.18.0" },
     { name = "gradio", specifier = "==4.44.0" },
     { name = "h5py", specifier = ">=3.16.0" },
+    { name = "liger-kernel", marker = "extra == 'liger'", specifier = "==0.6.5" },
     { name = "numpydantic", specifier = "==1.6.8" },
     { name = "peft", specifier = ">=0.15.0" },
     { name = "pillow" },
@@ -1544,6 +1563,7 @@ requires-dist = [
     { name = "transformers", specifier = "==4.51.0" },
     { name = "wandb", specifier = ">=0.25.1" },
 ]
+provides-extras = ["liger"]
 
 [[package]]
 name = "urllib3"
