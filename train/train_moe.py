@@ -85,6 +85,7 @@ class TrainingArguments(tf.TrainingArguments):
     max_position_embeddings: Optional[int] = field(default=None)
     from_scratch: bool = field(default=False)
     dataloader_num_workers: Optional[int] = field(default=0)
+    use_fp8: bool = field(default=False)
 
 def tag_muon_params(model):
     for name, p in model.named_parameters():
@@ -197,6 +198,14 @@ def train():
 
     # Initialize model
     model = load_model(model_args, model_config, training_args, lora_args)
+
+    # Convert Emu3MLP linears to torchao float8 (must happen before LoRA wrap,
+    # DeepSpeed init, and torch.compile).
+    if getattr(training_args, "use_fp8", False):
+        from emu3.mllm.fp8_patch import convert_emu3_mlp_to_fp8
+        n_converted = convert_emu3_mlp_to_fp8(model)
+        if training_args.local_rank in (-1, 0):
+            print(f"[fp8] converted {n_converted} MLP Linear layers to Float8Linear")
 
     # Wrap with LoRA if requested (skip if already loaded as PeftModel from adapter checkpoint)
     if lora_args.use_lora and not hasattr(model, 'peft_config'):

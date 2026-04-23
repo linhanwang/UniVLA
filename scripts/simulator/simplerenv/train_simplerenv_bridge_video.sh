@@ -7,7 +7,8 @@ NGPUS=4
 
 DATAPATH="$HOME/data/simplerenv_bridge_trainval.h5"
 ACTION_TOKENIZER_PATH="$HOME/projects/UniVLA/pretrain/fast_bridge_t5_s50"
-EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_STAGE1"
+# EXP_NAME="UNIVLA_SIMPLERENV_BRIDGE_VIDEO_BS128_20k_STAGE1"
+EXP_NAME="test"
 
 export WANDB_PROJECT="UniVLA"
 export WANDB__SERVICE_WAIT=300
@@ -17,7 +18,7 @@ export PYTHONPATH=$(pwd)
 export DS_SKIP_CUDA_CHECK=1
 export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}
 
-# export WANDB_MODE=offline
+export WANDB_MODE=offline
 
 $HOME/projects/UniVLA/.venv/bin/torchrun \
     --nproc_per_node=${NGPUS} \
@@ -48,6 +49,7 @@ $HOME/projects/UniVLA/.venv/bin/torchrun \
     --torch_compile True \
     --torch_compile_backend "inductor" \
     --torch_compile_mode "reduce-overhead" \
+    --use_fp8 True \
     --dataloader_persistent_workers True \
     --dataloader_prefetch_factor 4 \
     --frames 2 \

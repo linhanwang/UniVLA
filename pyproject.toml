@@ -19,10 +19,9 @@ dependencies = [
     "bitsandbytes>=0.49.2",
     "h5py>=3.16.0",
     "peft>=0.15.0",
+    "liger-kernel==0.6.5",
+    "torchao==0.16.0",
 ]
-
-[project.optional-dependencies]
-liger = ["liger-kernel==0.6.5"]
 
 [tool.uv]
 index-strategy = "unsafe-best-match"
@@ -36,3 +35,4 @@ explicit = true
 torch = { index = "pytorch-cu130" }
 torchvision = { index = "pytorch-cu130" }
 torchaudio = { index = "pytorch-cu130" }
+torchao = { index = "pytorch-cu130" }
