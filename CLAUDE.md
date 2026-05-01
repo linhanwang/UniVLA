@@ -12,7 +12,16 @@ UniVLA is a unified Vision-Language-Action model for robotics and autonomous dri
 uv sync
 ```
 
-Uses uv for environment management. PyTorch CUDA 13.0 builds are pulled from the PyTorch index configured in `pyproject.toml`. Flash attention is provided by PyTorch's built-in SDPA (scaled dot-product attention) with cuDNN backend — no separate flash-attn package needed.
+Uses uv for environment management. PyTorch CUDA 13.0 builds are pulled from the PyTorch index configured in `pyproject.toml`. Flash attention is provided by PyTorch's built-in SDPA — no separate `flash-attn` package needed.
+
+### Unified H200 / L40s env
+
+A single env (torch 2.10.0 + cu130, no `flash-attn` package) runs on both H200 (Hopper sm_90) and L40s (Ada sm_89). It works because `Emu3SdpaAttention` in `emu3/mllm/modeling_emu3.py` calls SDPA with `attn_mask=None, is_causal=True`, and `Emu3Model` skips building a 4D causal mask on the FA2/SDPA paths. With no explicit mask, PyTorch SDPA dispatches to its fast backend per arch:
+
+- L40s (Ada) → FA2 backend (`SDPBackend.FLASH_ATTENTION`).
+- H200 (Hopper) → cuDNN flash backend (`SDPBackend.CUDNN_ATTENTION`).
+
+This is safe because inputs are right-padded and pad positions carry `label=-100`: causal attention alone keeps non-pad outputs from attending to pads, and pad outputs don't contribute to loss. Do **not** reintroduce an explicit `attention_mask` into the FA2/SDPA paths — passing one knocks SDPA off the fast backends (silently regresses H200 perf). If padding semantics ever change (left-padding, or labels not -100 on pads), this assumption needs re-examining. See commit df6e509.
 
 ## Training Commands
 
